@@ -150,9 +150,9 @@ public partial class ReportEngine
             sw.CreateTable("Firewall Options",
                            [new { fwOptions.Enable, fwOptions.PolicyIn, fwOptions.PolicyOut, fwOptions.LogRatelimit }]);
 
-            AddFirewallAlias(sw, await client.Cluster.Firewall.Aliases.GetAsync()); 
-            
-            AddFirewallIpSet(sw, await client.Cluster.Firewall.Ipset.GetAsync()); 
+            AddFirewallAlias(sw, await client.Cluster.Firewall.Aliases.GetAsync());
+
+            AddFirewallIpSet(sw, await client.Cluster.Firewall.Ipset.GetAsync());
         }
 
         if (settings.Cluster.IncludeBackupJobs)

@@ -373,12 +373,11 @@ public partial class ReportEngine
         {
             pt.Step("Syslog");
             var s = settings.Node.Syslog;
-            var logs = (await client.Nodes[node].Syslog.Syslog(
-                limit:   s.MaxCount > 0 ? s.MaxCount : null,
-                service: string.IsNullOrWhiteSpace(s.Service) ? null : s.Service,
-                since:   s.Since.HasValue ? s.Since.Value.ToString("yyyy-MM-dd") : null,
-                until:   s.Until.HasValue ? s.Until.Value.ToString("yyyy-MM-dd") : null
-            )).ToLogs();
+            var logs = (await client.Nodes[node].Syslog.Syslog(limit: s.MaxCount > 0 ? s.MaxCount : null,
+                                                               service: string.IsNullOrWhiteSpace(s.Service) ? null : s.Service,
+                                                               since: s.Since.HasValue ? s.Since.Value.ToString("yyyy-MM-dd") : null,
+                                                               until: s.Until.HasValue ? s.Until.Value.ToString("yyyy-MM-dd") : null))
+                                                       .ToLogs();
             sw.CreateTable("Syslog", logs.Select(a => new { Log = a }));
         }
 
