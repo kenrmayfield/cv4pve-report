@@ -64,4 +64,9 @@ public class SettingsCluster
     /// Include High Availability configuration: resources, groups and status
     /// </summary>
     public bool IncludeHa { get; set; } = true;
+
+    /// <summary>
+    /// Audit log settings
+    /// </summary>
+    public SettingsTask AuditLog { get; set; } = new() { Enabled = false };
 }

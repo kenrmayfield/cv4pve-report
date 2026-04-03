@@ -15,7 +15,7 @@ internal partial class SheetWriter(IXLWorksheet ws, Dictionary<string, string> s
 
     public int Row { get; set; } = 1;
     public int Col { get; set; } = 1;
-
+    public bool SkipEmptyCollections { get; set; }
     public string SheetName => ws.Name;
 
     private static readonly HashSet<string> WrapColumnNames = new(StringComparer.OrdinalIgnoreCase)
@@ -40,6 +40,8 @@ internal partial class SheetWriter(IXLWorksheet ws, Dictionary<string, string> s
     /// <summary>Writes a key-value block starting at current Row/Col and advances Row.</summary>
     public void WriteKeyValue(string title, Dictionary<string, object?> items)
     {
+        if (SkipEmptyCollections && items.Count == 0) { return; }
+
         var startRow = Row;
         var col = Col;
 
@@ -98,6 +100,8 @@ internal partial class SheetWriter(IXLWorksheet ws, Dictionary<string, string> s
     /// <summary>Creates a table at current Row/Col, registers it in the index, and advances Row.</summary>
     public IXLTable CreateTable<T>(string title, IEnumerable<T> data, Action<IXLTable>? configure = null)
     {
+        if (SkipEmptyCollections && !data.Any()) { return null!; }
+
         _tableIndex.Add((title, Row));
         ws.Cell(Row, Col).Value = title;
         ws.Cell(Row, Col).Style.Font.SetBold(true);
@@ -174,11 +178,11 @@ internal partial class SheetWriter(IXLWorksheet ws, Dictionary<string, string> s
 
     public void ApplyColumnLinks(IXLTable table, string colName, Func<IXLCell, string?> getKey)
     {
-        var col = table.Fields.FirstOrDefault(f =>
-            f.Name.Equals(colName, StringComparison.OrdinalIgnoreCase) ||
-            f.HeaderCell.Value.ToString().Equals(colName, StringComparison.OrdinalIgnoreCase) ||
-            f.HeaderCell.Value.ToString().Equals(PascalCaseToWords(colName), StringComparison.OrdinalIgnoreCase));
+        var col = table.Fields.FirstOrDefault(f => f.Name.Equals(colName, StringComparison.OrdinalIgnoreCase)
+                                                    || f.HeaderCell.Value.ToString().Equals(colName, StringComparison.OrdinalIgnoreCase)
+                                                    || f.HeaderCell.Value.ToString().Equals(PascalCaseToWords(colName), StringComparison.OrdinalIgnoreCase));
         if (col == null) { return; }
+
         foreach (var cell in table.DataRange.Column(col.Index + 1).Cells())
         {
             var key = getKey(cell);
@@ -228,9 +232,6 @@ internal partial class SheetWriter(IXLWorksheet ws, Dictionary<string, string> s
                 : string.Empty;
             return $"storage:{node}:{storage}";
         });
-
-    public void ApplyBridgeLinks(IXLTable table, string node)
-        => ApplyColumnLinks(table, "Bridge", cell => $"node:{node}:network:{cell.Value}");
 
     public void RegisterNetworkLinks(IXLTable table, string node)
         => RegisterRowLinks(table, "Interface", cell => $"node:{node}:network:{cell.Value}");

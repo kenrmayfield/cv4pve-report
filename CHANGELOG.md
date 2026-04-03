@@ -2,6 +2,36 @@
 
 ---
 
+## [1.2.0] — 2026-04-03
+
+### What's new
+
+- **Network sheet** — new dedicated sheet with a complete network inventory across the entire cluster: all node interfaces and all VM/CT network cards with MAC address, bridge, VLAN, IP addresses and OS info in one place
+- **Disks sheet** — new dedicated sheet with VM/CT disk inventory: storage, size, cache, backup flag, unused flag, mount point, passthrough
+- **VM IP addresses** — IP addresses from the QEMU agent are now visible directly in the VM overview and network tables
+- **VM overview** — new columns: Networks (MAC + bridge/VLAN), IP Addresses, Hostname
+- **VM network detail** — additional fields: Trunks, Disconnect, LinkDown, Gateway, Gateway6
+- **VM disk detail** — additional fields: MountPoint, MountSourcePath, Passthrough
+- **Node network detail** — full IPv6 fields now included: Cidr6, Address6, Netmask6, Gateway6, Method6
+- **Node disks** — reorganized settings: `SettingsDisk` class with `Enabled`, `IncludeSmartData`, `IncludeZfs`, `IncludeDirectory`
+- **Node detail** — new optional tables: Directory mount points, ZFS pools with vdev tree
+- **APT Repositories** — new `IncludeAptRepositories` option to show configured APT repositories in node detail
+- **Cluster Audit Log** — cluster event log can now be included in the Cluster sheet with `OnlyErrors` and `MaxCount` filters
+- **SkipEmptyCollections** — new global setting to skip empty collections (e.g., no snapshots) from the report
+- **README** — added "Where cv4pve-report fits" section with RVTools comparison table
+
+### Changes
+
+- Version bumped to 1.2.0
+- Settings reorganization: disk-related settings moved from `SettingsNode` to dedicated `SettingsDisk` class
+- Audit Log settings enhanced with `OnlyErrors` filter for severity-based filtering
+
+### Fixes
+
+- HA Groups correctly skipped on PVE 9 and later where the API endpoint was removed
+
+---
+
 ## [1.1.0] — 2026-03-30
 
 ### What's new

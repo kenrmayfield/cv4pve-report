@@ -33,6 +33,84 @@ unzip cv4pve-report-linux-x64.zip
 
 ---
 
+## Where cv4pve-report fits
+
+RVTools is a pure inventory tool for VMware — it exports infrastructure data to Excel, nothing more. The cv4pve suite follows the Unix philosophy — each tool does one thing and does it well. Use them together for complete coverage.
+
+| | RVTools | [**cv4pve-report**](https://github.com/Corsinvest/cv4pve-report) | [cv4pve-diag](https://github.com/Corsinvest/cv4pve-diag) |
+|---|---------|:-----------------:|:-----------:|
+| **Platform** | VMware vSphere | Proxmox VE | Proxmox VE |
+| **Purpose** | Inventory & reporting | **Inventory & reporting** | **Diagnostics & health checks** |
+| **Output** | Excel | Excel | Text / HTML / JSON / Markdown / Excel |
+
+### Capabilities
+
+| Feature | RVTools | [cv4pve-report](https://github.com/Corsinvest/cv4pve-report) | [cv4pve-diag](https://github.com/Corsinvest/cv4pve-diag) |
+|---------|:-------:|:-------------:|:-----------:|
+| **Inventory** | | | |
+| VM / CT inventory | ✓ | ✓ | |
+| Node / host inventory | ✓ | ✓ | |
+| CPU details per VM | ✓ | ✓ | |
+| Memory details per VM | ✓ | ✓ | |
+| Disk inventory | ✓ | ✓ | |
+| Guest disk partitions | ✓ | ✓ | |
+| Network inventory (NICs, IPs, MACs) | ✓ | ✓ | |
+| Storage / datastore inventory | ✓ | ✓ | |
+| Snapshot inventory | ✓ | ✓ | |
+| Resource pools | ✓ | ✓ | |
+| Cluster configuration | ✓ | ✓ | |
+| License / subscription inventory | ✓ | ✓ | |
+| SSL certificates | ✓ | ✓ | |
+| RRD metrics (CPU / memory / disk / net) | ✓ | ✓ | |
+| SMART data per disk | | ✓ | |
+| Backup job configuration | | ✓ | |
+| Replication configuration | | ✓ | |
+| HA configuration | | ✓ | |
+| Firewall rules export | | ✓ | |
+| SDN zones / vnets | | ✓ | |
+| Users / roles / ACL / TFA | | ✓ | |
+| API tokens | | ✓ | |
+| APT packages / updates | | ✓ | |
+| Syslog / audit log | | ✓ | |
+| **Diagnostics** | | | |
+| CD-ROM / floppy connected | ✓ | | ✓ |
+| Old / missing snapshots | ✓ | | ✓ |
+| Snapshot with RAM state | ✓ | | ✓ |
+| Agent / VMware Tools version & status | ✓ | ✓ | ✓ |
+| Datastore / disk usage thresholds | ✓ | | ✓ |
+| Orphan disk images | ✓ | | ✓ |
+| Orphan backups | ✓ | | ✓ |
+| vCPU overcommit per core | ✓ | | ✓ |
+| Zombie VM / orphan VM | ✓ | | ✓ |
+| Duplicate MAC address | | | ✓ |
+| CPU / memory / network usage thresholds | | | ✓ |
+| Health score (composite CPU + RAM) | | | ✓ |
+| Cluster quorum / HA health | | | ✓ |
+| Node offline / version mismatch | | | ✓ |
+| Node reboot required (kernel mismatch) | | | ✓ |
+| DNS / NTP / timezone / APT drift between nodes | | | ✓ |
+| NIC inactive / MTU mismatch between nodes | | | ✓ |
+| CPU level mismatch between nodes | | | ✓ |
+| IOMMU not enabled | | | ✓ |
+| ZFS pool / vdev health and errors | | | ✓ |
+| Thin provisioning overcommit | | | ✓ |
+| SMART failures / disk temperature | | | ✓ |
+| Backup storage not reachable from all nodes | | | ✓ |
+| VM misconfigurations (VirtIO, cache, CPU type, passthrough…) | | | ✓ |
+| Pending config changes (reboot required) | | | ✓ |
+| LXC security (privileged, nesting, raw config…) | | | ✓ |
+| Missing backup / no recent backup | | | ✓ |
+| Firewall / security issues (TFA, ACL, tokens) | | | ✓ |
+| Snapshot age / count violations | | | ✓ |
+| PSI pressure (PVE 9+) | | | ✓ |
+| Severity levels (Critical / Warning / Info) | | | ✓ |
+| Ignore rules for known issues | | | ✓ |
+
+> **cv4pve-report** shows you *what* is in your infrastructure.
+> **cv4pve-diag** tells you *what is wrong* with it.
+
+---
+
 ## Features
 
 - **Single `.xlsx` file** — one sheet per node, VM and storage
@@ -96,6 +174,8 @@ Every resource reference in the report is a clickable hyperlink:
 | Node detail | Index at top → each table in the sheet; Replication Guest/Source/Target → VM and node sheets |
 | VM detail | Index at top → each table in the sheet; Node → node detail sheet |
 | Storage detail | Index at top → each table in the sheet; Content VM ID column → VM detail sheet |
+| Network sheet | Node column → node detail sheet; VM ID column → VM detail sheet |
+| Disks sheet | Node column → node detail sheet; VM ID column → VM detail sheet; Storage column → storage detail sheet |
 | Tasks tables | VM ID column → VM detail sheet |
 
 ### Summary Sheet
@@ -121,6 +201,7 @@ Every resource reference in the report is a clickable hyperlink:
 | Backup | Backup job configuration |
 | Replication | Replication job configuration |
 | Pools | Resource pools with member list (VM/CT and storage) |
+| Audit Log | Cluster-level event log *(if enabled)* |
 
 ### Storages Sheet
 
@@ -132,13 +213,16 @@ Overview table → dedicated sheet per storage containing:
 
 Overview table → dedicated sheet per node containing:
 - **Services** — system service status
-- **Network** — interface configuration
-- **Disks** — physical disk list with health
+- **Network** — interface configuration with full IPv4/IPv6 details
+- **Disks** — physical disk list with partitions, health, SMART summary *(if enabled)*
 - **SMART Data** — SMART attributes per disk *(if enabled)*
+- **Directory** — filesystem mount points *(if enabled)*
+- **ZFS Pools** — ZFS pool list with health, usage and vdev tree *(if enabled)*
 - **Replication** — per-node replication jobs with links to source/target nodes and VMs
 - **RRD Data** — CPU, memory, network, disk metrics over time *(if enabled)*
-- **Apt Update** — available package updates
-- **Package Version** — installed package versions
+- **Apt Repository** — configured APT repositories *(if enabled)*
+- **Apt Update** — available package updates *(if enabled)*
+- **Package Version** — installed package versions *(if enabled)*
 - **Firewall Rules** — node-level rules *(if enabled)*
 - **Firewall Logs** — node firewall log *(if enabled)*
 - **SSL Certificates** — certificate validity and expiry
@@ -160,6 +244,23 @@ Overview table → dedicated sheet per VM/CT containing:
 - **Firewall Logs** — VM firewall log *(if enabled)*
 - **Tasks** — recent task history *(if enabled)*
 
+### Network Sheet
+
+Global network inventory across all nodes and VMs/CTs:
+
+| Table | Contents |
+|-------|----------|
+| Node Networks | All node interfaces with bridge ports, VLAN settings, CIDR (IPv4 and IPv6) |
+| VM Networks | All VM/CT network interfaces with MAC, bridge, VLAN, IP addresses, model, firewall flag and OS info |
+
+### Disks Sheet
+
+Global disk inventory across all VMs/CTs:
+
+| Table | Contents |
+|-------|----------|
+| VM Disks | All VM/CT disks with storage, size, cache, backup flag, unused flag, mount point |
+
 ---
 
 ## Settings Reference
@@ -170,7 +271,8 @@ Generate the default settings file with:
 cv4pve-report create-settings
 ```
 
-Full `settings.json` structure with all defaults:
+<details>
+<summary><strong>Full settings.json with all defaults</strong></summary>
 
 ```jsonc
 {
@@ -185,7 +287,12 @@ Full `settings.json` structure with all defaults:
     "IncludeSdn": true,            // SDN zones, vnets and controllers
     "IncludeMapping": true,        // hardware mappings (directory, PCI, USB)
     "IncludePools": true,          // resource pools with member list
-    "IncludeHa": true              // HA resources, groups and status
+    "IncludeHa": true,             // HA resources, groups and status
+    "AuditLog": {
+      "Enabled": false,            // cluster audit log (syslog-style events)
+      "OnlyErrors": false,         // show only error/warning events (severity <= 3)
+      "MaxCount": 0                // 0 = unlimited
+    }
   },
   "Node": {
     "Names": "@all",               // @all | pve1 | pve1,pve2 | pve*
@@ -213,13 +320,18 @@ Full `settings.json` structure with all defaults:
       "Since": null,               // DateOnly e.g. "2024-01-01"
       "Until": null
     },
+    "Disk": {
+      "Enabled": true,             // physical disk list with partitions
+      "IncludeSmartData": false,   // SMART attributes per disk (one API call per disk)
+      "IncludeZfs": true,          // ZFS pool list and vdev tree
+      "IncludeDirectory": true     // filesystem mount points
+    },
     "IncludeNetwork": true,        // network interface configuration
-    "IncludeDisks": true,          // physical disk list
-    "IncludeSmartData": true,      // SMART health data per disk (one API call per disk)
     "IncludeServices": true,       // system service status
     "IncludeSslCertificates": true,// SSL certificate validity and expiry
+    "IncludeAptRepositories": true,// configured APT repositories
     "IncludeAptUpdates": true,     // available APT package updates
-    "IncludeAptVersions": true,    // installed APT package versions
+    "IncludeAptVersions": false,   // installed APT package versions
     "IncludeReplication": true     // per-node replication jobs
   },
   "Guest": {
@@ -255,9 +367,12 @@ Full `settings.json` structure with all defaults:
 }
 ```
 
+</details>
+
 ---
 
-## VM/CT Selection Patterns
+<details>
+<summary><strong>VM/CT Selection Patterns</strong></summary>
 
 The `Guest.Ids` setting supports the same powerful pattern matching as [cv4pve-autosnap](https://github.com/Corsinvest/cv4pve-autosnap):
 
@@ -276,8 +391,6 @@ The `Guest.Ids` setting supports the same powerful pattern matching as [cv4pve-a
 | **Tag Exclusion** | `-@tag-name` | Exclude by tag | `@all,-@tag-test` |
 | **Node Exclusion** | `-@node-name` | Exclude by node | `@all,-@node-pve2` |
 
-**Examples:**
-
 ```
 @all                          # all VMs/CTs
 100,101,102                   # specific IDs
@@ -290,9 +403,12 @@ The `Guest.Ids` setting supports the same powerful pattern matching as [cv4pve-a
 %web%                         # VMs whose name contains "web"
 ```
 
----
+</details>
 
 ## Command Reference
+
+<details>
+<summary><strong>Full command reference</strong></summary>
 
 ```bash
 cv4pve-report [global-options] [command]
@@ -344,9 +460,14 @@ cv4pve-report create-settings --fast
 cv4pve-report create-settings --full
 ```
 
+</details>
+
 ---
 
 ## Profiles
+
+<details>
+<summary><strong>Profiles comparison</strong></summary>
 
 | Profile | Use case | Speed |
 |---------|----------|-------|
@@ -368,16 +489,21 @@ cv4pve-report create-settings --full
 | IncludeMapping | | ✓ | ✓ |
 | IncludePools | ✓ | ✓ | ✓ |
 | IncludeHa | ✓ | ✓ | ✓ |
+| AuditLog.Enabled | | | ✓ |
+| AuditLog.MaxCount | | — | 1000 |
 | **Node** | | | |
 | IncludeNetwork | ✓ | ✓ | ✓ |
-| IncludeDisks | ✓ | ✓ | ✓ |
-| IncludeSmartData | | | ✓ |
+| Disk.Enabled | ✓ | ✓ | ✓ |
+| Disk.IncludeSmartData | | | ✓ |
+| Disk.IncludeZfs | | ✓ | ✓ |
+| Disk.IncludeDirectory | | ✓ | ✓ |
 | IncludeServices | | ✓ | ✓ |
 | IncludeReplication | ✓ | ✓ | ✓ |
 | Firewall.Enabled | | ✓ | ✓ |
 | Firewall.LogMaxCount | | 0 | 1000 |
 | Firewall.LogSince | | — | last 7 days |
 | IncludeSslCertificates | | ✓ | ✓ |
+| IncludeAptRepositories | | ✓ | ✓ |
 | IncludeAptUpdates | | ✓ | ✓ |
 | IncludeAptVersions | | | ✓ |
 | Tasks.Enabled | | ✓ | ✓ |
@@ -401,6 +527,8 @@ cv4pve-report create-settings --full
 | RrdData | | ✓ | ✓ (Week) |
 | **Storage** | | | |
 | RrdData | | ✓ | ✓ (Week) |
+
+</details>
 
 ---
 

@@ -13,13 +13,13 @@ public partial class ReportEngine
 {
     private async Task AddClusterDataAsync(XLWorkbook workbook)
     {
-        var sw = new SheetWriter(workbook.Worksheets.Add("Cluster"), _sheetLinks);
+        var sw = CreateSheetWriter(workbook, "Cluster");
 
         var pveVersion = await client.Version.GetAsync();
-        var pveMajor = int.TryParse(pveVersion.Version?.Split('.')[0], out var v) 
-                        ? v 
+        var pveMajor = int.TryParse(pveVersion.Version?.Split('.')[0], out var v)
+                        ? v
                         : 0;
-                        
+
         var haGroupsSupported = pveMajor < 9;
 
         var tableCount = 1  // Status
@@ -33,7 +33,8 @@ public partial class ReportEngine
                        + (settings.Cluster.IncludeSdn ? 5 : 0)
                        + (settings.Cluster.IncludeMapping ? 3 : 0)
                        + (settings.Cluster.IncludePools ? 1 : 0)
-                       + (settings.Cluster.IncludeHa ? (haGroupsSupported ? 3 : 2) : 0);
+                       + (settings.Cluster.IncludeHa ? (haGroupsSupported ? 3 : 2) : 0)
+                       + (settings.Cluster.AuditLog.Enabled ? 1 : 0);
 
         var clusterStatus = (await client.Cluster.Status.GetAsync()).FirstOrDefault(a => a.Type == "cluster");
 
@@ -398,6 +399,26 @@ public partial class ReportEngine
                                a.State,
                                a.CrmState,
                                a.Quorate,
+                           }));
+        }
+
+        if (settings.Cluster.AuditLog.Enabled)
+        {
+            var logs = await client.Cluster.Log.GetAsync(max: settings.Cluster.AuditLog.MaxCount > 0
+                                                            ? settings.Cluster.AuditLog.MaxCount
+                                                            : null);
+            sw.CreateTable("Audit Log",
+                           (settings.Cluster.AuditLog.OnlyErrors
+                            ? logs.Where(a => a.Severity <= 3)
+                            : logs)
+                           .Select(a => new
+                           {
+                               a.TimeDate,
+                               a.Node,
+                               a.User,
+                               a.Service,
+                               a.SeverityEnum,
+                               a.Message,
                            }));
         }
 
