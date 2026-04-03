@@ -18,12 +18,13 @@ public class SettingsTask
     /// <summary>
     /// Show only failed tasks
     /// </summary>
-    public bool OnlyErrors { get; set; } = false;
+    public bool OnlyErrors { get; set; }
 
     /// <summary>
     /// Maximum number of tasks to return (0 = unlimited)
     /// </summary>
-    public int MaxCount { get; set; } = 0;
+    public int MaxCount { get; set; }
+
 
     /// <summary>
     /// Task source filter: all, local, active

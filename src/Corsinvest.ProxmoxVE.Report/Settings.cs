@@ -30,6 +30,11 @@ public class Settings
     /// </summary>
     public SettingsStorage Storage { get; set; } = new();
 
+    /// <summary>
+    /// Whether to skip empty collections (e.g. no snapshots) or include them as empty tables in the report.
+    /// </summary>
+    public bool SkipEmptyCollections { get; set; } = true;
+
     /// <summary>Fast profile — structure only, no heavy data.</summary>
     public static Settings Fast() => new()
     {
@@ -42,14 +47,16 @@ public class Settings
         },
         Node = new()
         {
-            IncludeSmartData = false,
+            Disk = new() { IncludeSmartData = false, IncludeZfs = false, IncludeDirectory = false },
             IncludeServices = false,
             Firewall = new() { Enabled = false },
             IncludeSslCertificates = false,
+            IncludeAptRepositories = false,
             IncludeAptUpdates = false,
             IncludeAptVersions = false,
             Tasks = new() { Enabled = false },
             RrdData = new() { Enabled = false },
+            Syslog = new() { Enabled = false },
         },
         Guest = new()
         {
@@ -75,8 +82,14 @@ public class Settings
         var lastWeek = DateOnly.FromDateTime(DateTime.Now.AddDays(-7));
         return new()
         {
+            Cluster = new()
+            {
+                AuditLog = new() { Enabled = true, MaxCount = 1000 },
+            },
             Node = new()
             {
+                Disk = new() { IncludeSmartData = true },
+                IncludeAptVersions = true,
                 RrdData = new() { TimeFrame = Api.Shared.Models.Common.RrdDataTimeFrame.Week },
                 Firewall = new() { LogMaxCount = 1000, LogSince = lastWeek },
                 Syslog = new() { Enabled = true, MaxCount = 1000, Since = lastWeek },

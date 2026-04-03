@@ -18,7 +18,7 @@ public class SettingsFirewall
     /// <summary>
     /// Maximum number of firewall log lines to return (0 = unlimited)
     /// </summary>
-    public int LogMaxCount { get; set; } = 0;
+    public int LogMaxCount { get; set; }
 
     /// <summary>
     /// Display firewall log since this date

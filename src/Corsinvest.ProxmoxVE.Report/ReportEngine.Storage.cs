@@ -14,7 +14,7 @@ public partial class ReportEngine
 {
     private async Task AddStoragesDataAsync(XLWorkbook workbook)
     {
-        var sw = new SheetWriter(workbook.Worksheets.Add("Storages"), _sheetLinks);
+        var sw = CreateSheetWriter(workbook, "Storages");
         var resources = await client.GetResourcesAsync(ClusterResourceType.Storage);
         var filtered = resources.Where(a => CheckNames(settings.Storage.Names, a.Storage)).OrderBy(a => a.Node).ToList();
         var items = new List<dynamic>();
@@ -52,7 +52,7 @@ public partial class ReportEngine
     {
         var node = item.Node;
         var storage = item.Storage;
-        var sw = new SheetWriter(workbook.Worksheets.Add(GetSheetName(ClusterResourceType.Storage, node, storage)!), _sheetLinks);
+        var sw = CreateSheetWriter(workbook, GetSheetName(ClusterResourceType.Storage, node, storage)!);
 
         sw.WriteKeyValue($"{node} - {storage}",
                          new()

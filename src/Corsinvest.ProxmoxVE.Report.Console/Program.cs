@@ -50,7 +50,7 @@ cmdExport.SetAction(async (action) =>
                                 ? Settings.Full()
                                 : Settings.Standard();
 
-    var engine = new ReportEngine(client, settings);
+    var engine = new ReportEngine(client, settings, new());
     var progress = new Progress<ReportProgress>(p =>
     {
         if (Console.IsOutputRedirected)

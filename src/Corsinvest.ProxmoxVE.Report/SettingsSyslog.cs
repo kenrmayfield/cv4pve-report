@@ -13,7 +13,7 @@ public class SettingsSyslog
     /// <summary>
     /// Include syslog
     /// </summary>
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; }
 
     /// <summary>
     /// Maximum number of lines to return (0 = unlimited)

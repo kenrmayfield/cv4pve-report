@@ -31,14 +31,9 @@ public class SettingsNode
     public bool IncludeNetwork { get; set; } = true;
 
     /// <summary>
-    /// Include disk list
+    /// Disk settings
     /// </summary>
-    public bool IncludeDisks { get; set; } = true;
-
-    /// <summary>
-    /// Include SMART data for each disk (one API call per disk)
-    /// </summary>
-    public bool IncludeSmartData { get; set; } = true;
+    public SettingsDisk Disk { get; set; } = new();
 
     /// <summary>
     /// Include system services
@@ -61,9 +56,15 @@ public class SettingsNode
     public bool IncludeAptUpdates { get; set; } = true;
 
     /// <summary>
+    /// Include APT repositories
+    /// </summary>
+    public bool IncludeAptRepositories { get; set; } = true;
+
+    /// <summary>
     /// Include APT installed package versions
     /// </summary>
-    public bool IncludeAptVersions { get; set; } = true;
+    public bool IncludeAptVersions { get; set; }
+
 
     /// <summary>
     /// Include replication jobs

@@ -1,5 +1,4 @@
 /*
-using Corsinvest.ProxmoxVE.Api.Shared.Models.Common;
  * SPDX-FileCopyrightText: Copyright Corsinvest Srl
  * SPDX-License-Identifier: GPL-3.0-only
  */
@@ -9,20 +8,30 @@ using Corsinvest.ProxmoxVE.Api;
 using Corsinvest.ProxmoxVE.Api.Extension;
 using Corsinvest.ProxmoxVE.Api.Shared.Models.Cluster;
 using Corsinvest.ProxmoxVE.Api.Shared.Models.Common;
+using Corsinvest.ProxmoxVE.Api.Shared.Models.Node;
 using System.Text.RegularExpressions;
 
 namespace Corsinvest.ProxmoxVE.Report;
 
 /// <summary>Report engine for Proxmox VE infrastructure.</summary>
-public partial class ReportEngine(PveClient client, Settings settings)
+public partial class ReportEngine(PveClient client, Settings settings, ReportInfo info)
 {
     private IProgress<ReportProgress>? _progress;
     private readonly Dictionary<string, string> _sheetLinks = [];
+    private readonly Dictionary<string, IEnumerable<NodeNetwork>> _nodeNetworks = [];
+    private readonly List<VmNetworkRow> _vmNetworkRows = [];
+    private readonly List<VmDiskRow> _vmDiskRows = [];
 
     private string? GetSheetName(ClusterResourceType type, params string[] values)
         => _sheetLinks.TryGetValue(SheetLinkKey(type, values), out var name)
             ? name
             : null;
+
+    private SheetWriter CreateSheetWriter(XLWorkbook workbook, string name)
+        => new(workbook.Worksheets.Add(name), _sheetLinks)
+        {
+            SkipEmptyCollections = settings.SkipEmptyCollections
+        };
 
     internal static string SheetLinkKey(ClusterResourceType type, params string[] values)
         => $"{type.ToString().ToLowerInvariant()}:{values.JoinAsString(":")}";
@@ -83,6 +92,12 @@ public partial class ReportEngine(PveClient client, Settings settings)
 
         ReportGlobal("Vms");
         await AddVmsDataAsync(workbook);
+
+        ReportGlobal("Network");
+        await AddNetworkDataAsync(workbook);
+
+        ReportGlobal("Disks");
+        await AddDisksDataAsync(workbook);
 
         ReportGlobal("Saving");
         workbook.SaveAs(stream);
